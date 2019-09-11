@@ -7,7 +7,7 @@ import android.widget.TextView;
 
 import java.net.Socket;
 
-public class clientReceiving extends AppCompatActivity {
+public class clientReceivingActivity extends AppCompatActivity {
 
     Socket sock;
     TextView textView;

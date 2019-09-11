@@ -57,9 +57,9 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(MainActivity.this, new String[] {Manifest.permission.CAMERA,Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE}, CAMERA_PERMISSION_CODE);// permission request popup
 
 
-        this.sendIntent= new Intent(this, qrGenerator.class);
+        this.sendIntent= new Intent(this, qrGeneratorActivity.class);
         this.receiveIntent= new Intent(this, qrCamActivity.class);
-        this.serverSendingIntent= new Intent(this,serverSending.class);
+        this.serverSendingIntent= new Intent(this,serverSendingActivity.class);
         serverSendingIntent.putExtra("FILE_STRINGS",URI_CODES);
 
         this.URI_CODES= new Stack<String>();

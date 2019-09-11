@@ -1,4 +1,4 @@
-package com.yut.originalqualityphotoshare.;
+package com.yut.originalqualityphotoshare;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;

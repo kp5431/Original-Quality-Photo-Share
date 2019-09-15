@@ -24,7 +24,7 @@ public class ClientThread implements Runnable{
     public void run(){
         /*
          */
-        byte[] filefinished= new byte[3];
+        byte[] filefinished;
         String str= "done";
         filefinished= str.getBytes();
 

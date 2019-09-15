@@ -5,7 +5,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
 
+import java.io.IOException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class clientReceivingActivity extends AppCompatActivity {
 
@@ -18,12 +20,17 @@ public class clientReceivingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_client_recieving);
         textView= findViewById(R.id.test);
         String detected=getDetected();
-        textView.setText(detected);
+        String[] ipAndport= parseDetected(detected);
+        textView.setText("First: "+ipAndport[0]+"\n Second: "+ipAndport[1]);
 
-        //String[] ipAndport= FormatString(detected);
 
-        //this.sock= new Socket(ipAddress, port);
-
+        try {
+            this.sock = new Socket(ipAndport[0], Integer.parseInt(ipAndport[1]));
+            textView.setText("connected");
+        }
+        catch (IOException e){
+            textView.setText("IO exception");
+        }
 
     }
 
@@ -34,16 +41,18 @@ public class clientReceivingActivity extends AppCompatActivity {
         String detected=extras.getString("detected");
         return detected;
     }
-/*
-    public String[] FormatString(String str){
-            String[] array= str.split("");
-            String[] finalArray;
-            for(String s: array){
 
 
+    public String[] parseDetected(String detected){
+        String[] array;
+        String[] array2;
+
+        array= detected.split("/");
+        array2= array[1].split(":");
+        return array2;
         }
-    }
-    */
+
+
 }
 
 

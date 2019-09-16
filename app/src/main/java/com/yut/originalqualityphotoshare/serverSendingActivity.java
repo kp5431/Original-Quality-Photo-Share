@@ -23,9 +23,13 @@ public class serverSendingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_server_sending);
         this.files = getIntent().getStringArrayExtra("FILE_STRINGS");
         this.serverText = findViewById(R.id.serverText);
-        new serverSending().execute(files);
-        
+        this.server= new serverSending();
+        server.execute(files);
 
 
     }
+
+
+
+
 }

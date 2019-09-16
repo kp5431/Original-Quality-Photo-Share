@@ -11,8 +11,9 @@ import java.net.UnknownHostException;
 
 public class clientReceivingActivity extends AppCompatActivity {
 
-    Socket sock;
+
     TextView textView;
+    clientReceiving clientReceiving;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,15 +23,9 @@ public class clientReceivingActivity extends AppCompatActivity {
         String detected=getDetected();
         String[] ipAndport= parseDetected(detected);
         textView.setText("First: "+ipAndport[0]+"\n Second: "+ipAndport[1]);
+        this.clientReceiving=new clientReceiving();
+        clientReceiving.execute(ipAndport);
 
-
-        try {
-            this.sock = new Socket(ipAndport[0], Integer.parseInt(ipAndport[1]));
-            textView.setText("connected");
-        }
-        catch (IOException e){
-            textView.setText("IO exception");
-        }
 
     }
 

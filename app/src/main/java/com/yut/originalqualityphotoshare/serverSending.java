@@ -40,4 +40,10 @@ public class serverSending extends AsyncTask <String[], String, Long>  {
 
         return null;
     }
+
+    @Override
+    protected void onProgressUpdate(String... values) {
+        super.onProgressUpdate(values);
+        System.out.println(values[0]);
+    }
 }

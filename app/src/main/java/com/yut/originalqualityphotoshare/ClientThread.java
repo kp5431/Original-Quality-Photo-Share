@@ -22,35 +22,34 @@ public class ClientThread implements Runnable{
     }
 
     public void run(){
-        /*
-         */
-        byte[] filefinished;
-        String str= "done";
-        filefinished= str.getBytes();
 
         try {
-            OutputStream os = sock.getOutputStream();
-            DataOutputStream dos = new DataOutputStream(os);
+
+            DataOutputStream dos = new DataOutputStream(sock.getOutputStream());
+            System.out.println("number of files: "+ fileLocations.length);
             dos.writeInt(fileLocations.length); //tells client number of files to create
 
 
             for (String input : fileLocations) {
+                System.out.println("file location: "+ input);
                 File file = new File(input); //file object
                 byte[] toBytes = new byte[(int) file.length()]; //converts file to bytes for outputstream
-                DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
-                dis.readFully(toBytes, 0, toBytes.length);
+                System.out.println("byte[] length: "+toBytes.length);
 
-                dos.writeUTF(file.getName());
-                dos.writeLong(toBytes.length);
-                dos.write(toBytes, 0, toBytes.length);
-                dos.write(filefinished, 0, 3);
+                DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
+                dis.readFully(toBytes, 0, toBytes.length); //reads file into byte array
+
+                dos.writeUTF(file.getName()); //sends filename
+                dos.writeLong(toBytes.length); //sends length of file
+                dos.write(toBytes, 0, toBytes.length); //sends file
+                dos.writeUTF("file finished"); //sends marker for file finished
                 dos.flush();
 
                 dis.close();
 
             }
             //closes all
-            os.close();
+
             dos.close();
             sock.close();
 

@@ -5,8 +5,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.OnLifecycleEvent;
+
 
 import android.Manifest;
 
@@ -21,7 +20,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.net.URI;
+
 import java.util.Stack;
 
 public class MainActivity extends AppCompatActivity {
@@ -30,8 +29,7 @@ public class MainActivity extends AppCompatActivity {
 
     Button sendButton;
     Button receiveButton;
-    Button qrButton;
-    Intent sendIntent;
+
     Intent receiveIntent;
     Intent serverSendingIntent;
     TextView tutorialText;
@@ -52,12 +50,10 @@ public class MainActivity extends AppCompatActivity {
         this.tutorialText=findViewById(R.id.tutorialText);
         this.sendButton =findViewById(R.id.sendButton);
         this.receiveButton = findViewById(R.id.receiveButton);
-        this.qrButton= findViewById(R.id.qrButton);
 
         ActivityCompat.requestPermissions(MainActivity.this, new String[] {Manifest.permission.CAMERA,Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE}, CAMERA_PERMISSION_CODE);// permission request popup
 
 
-        this.sendIntent= new Intent(this, qrGeneratorActivity.class);
         this.receiveIntent= new Intent(this, qrCamActivity.class);
         this.serverSendingIntent= new Intent(this,serverSendingActivity.class);
         serverSendingIntent.putExtra("FILE_STRINGS",URI_CODES);
@@ -72,12 +68,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume(){
         super.onResume();
 
-        qrButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(sendIntent);
-            }
-        });
 
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override

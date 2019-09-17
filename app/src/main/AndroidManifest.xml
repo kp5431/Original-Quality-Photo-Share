@@ -17,7 +17,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".serverSendingActivity"></activity>
-        <activity android:name=".qrGeneratorActivity" />
         <activity android:name=".qrCamActivity" />
         <activity android:name=".clientReceivingActivity" />
         <activity android:name=".MainActivity">

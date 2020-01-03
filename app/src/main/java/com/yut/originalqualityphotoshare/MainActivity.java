@@ -15,12 +15,14 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
+import java.io.File;
 import java.util.Stack;
 
 public class MainActivity extends AppCompatActivity {
@@ -36,8 +38,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     private final int CAMERA_PERMISSION_CODE=1;
-    private final int WRITE_EXTERNAL_STORAGE_CODE=1;
-    private final int READ_EXTERNAL_STORAGE_CODE=1;
+    private final int WRITE_EXTERNAL_STORAGE_CODE=2;
+    private final int READ_EXTERNAL_STORAGE_CODE=3;
     private static final int IMAGE_PICKER_SELECT=5;
 
     private Stack<String> URI_CODES;
@@ -60,12 +62,17 @@ public class MainActivity extends AppCompatActivity {
 
         this.URI_CODES= new Stack<String>();
 
+        if(!makeDirectory()){
+            Toast.makeText(this, "directory creation failed", Toast.LENGTH_SHORT).show();
+        }
+
+
 
 
     }
 
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
 
 
@@ -73,36 +80,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 /*
-                sendButton listener, checks if camera and read storage permissions have been met.
+                sendButton listener, checks if read storage permission has been met.
                 If so, proceeds to next activity.
                 */
-                if (ContextCompat.checkSelfPermission(MainActivity.this, //is camera is accessible? if so then:
-                        Manifest.permission.CAMERA)== PackageManager.PERMISSION_GRANTED ) {
-                    if(ContextCompat.checkSelfPermission(MainActivity.this, //is read storage accessible? if so, then:
-                            Manifest.permission.READ_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED ){
-                        //continue to end of method
-                    }
-                    else{ //if read storage isn't accessible, but camera is then:
-                        requestReadStoragePermission();
-                    }
+                if (!(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)){
+                    requestReadStoragePermission();
                 }
-
-                else { //if camera isn't accessible, then
-                    requestCameraPermission();
-                    if(ContextCompat.checkSelfPermission(MainActivity.this, //is read storage is accessible? if so, then:
-                            Manifest.permission.READ_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED ){
-                        //continue to end of method
-                    }
-                    else{ //if read storage isn't accessible, but camera is, then:
-                        requestReadStoragePermission();
-                    }
+                else {
+                    //proceed to next activity
+                    openGallery();
                 }
-
-                Toast.makeText(MainActivity.this, "Opening Camera",
-                        Toast.LENGTH_SHORT).show();
-                //proceed to next activity from
-                openGallery();
-
             }
         });
 
@@ -110,30 +97,38 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 /*
-                receiveButton listener, checks if write storage permission has been met.
+                receiveButton listener, checks if camera and write storage permissions have been met.
                 If so, proceeds to next activity
-
-
-                if (ContextCompat.checkSelfPermission(MainActivity.this,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                    //goto qr code scanner activity
-
-
-                } else {
-                    requestWriteStoragePermission();
-
-                }
                 */
-                Toast.makeText(MainActivity.this, "Generating QR Code",
-                        Toast.LENGTH_SHORT).show();
-                startActivity(receiveIntent);
-
+                if (!(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)){
+                    requestWriteStoragePermission();
+                        if(!(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)) {
+                            requestCameraPermission();
+                        }
+                        else{
+                            //
+                            Toast.makeText(MainActivity.this, "Opening Camera",
+                                    Toast.LENGTH_SHORT).show();
+                            startActivity(receiveIntent); //go to qr cam activity
+                        }
+                }
+                else {
+                    if(!(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)) {
+                        requestCameraPermission();
+                    }
+                    else {
+                        Toast.makeText(MainActivity.this, "Opening Camera",
+                                Toast.LENGTH_SHORT).show();
+                        startActivity(receiveIntent); //go to qr cam activity
+                    }
+                }
             }
+
         });
 
-
-
     }
+
+
     private void openGallery(){
         Intent galleryIntent= new Intent(Intent.ACTION_GET_CONTENT);
         galleryIntent.setType("image/*"); //allows any image file type. Change * to specific extension to limit it
@@ -152,10 +147,9 @@ public class MainActivity extends AppCompatActivity {
                     int count = data.getClipData().getItemCount();
                     for(int i = 0; i < count; i++){
                         Uri imageUri = data.getClipData().getItemAt(i).getUri();
-
                         URI_CODES.push(imageUri.toString());
-                        startActivity(serverSendingIntent);
                     }
+                    startActivity(serverSendingIntent);
                 } else if(data.getData() != null) {
                     String imagePath = data.getData().getPath();
                     URI_CODES.push(imagePath);
@@ -167,121 +161,130 @@ public class MainActivity extends AppCompatActivity {
     }
     private void requestCameraPermission(){
         /*
-        requests camera permission, handles user not accepting permission request immediately
+        requests camera permission handles user not accepting permission request using toast messages
          */
-        if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)){//this line checks if user has already denied permission once
-            //if true, then
-            new AlertDialog.Builder(this) //the popup message explanation
-                    .setTitle("Permission needed")
-                    .setMessage("Camera permission is needed to scan QR codes.")
-                    .setPositiveButton("ok", new DialogInterface.OnClickListener() { //'ok' button is a listener that on click performs another permission request
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            ActivityCompat.requestPermissions(MainActivity.this, new String[] {Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);// permission request popup
-                        }
-                    })
-                    .setNegativeButton("cancel", new DialogInterface.OnClickListener() { //other cancel button
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();//exits AlertDialog
-                        }
-                    })
-                    .create().show();
-        }
-        else{//if false, then
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, //has the user already denied the permission?
+                Manifest.permission.CAMERA)) {
+           //show explanation to user
+            Toast.makeText(this, "Camera permission needed to scan QR codes", Toast.LENGTH_LONG).show();
+            //request the permission
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.CAMERA},
+                    CAMERA_PERMISSION_CODE);
+        } else {
+            // No explanation needed; request the permission
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.CAMERA},
+                    CAMERA_PERMISSION_CODE);
+
+            // CAMERA_PERMISSION_CODE is an
+            // app-defined int constant. The onRequestPermissionsResult method gets the code
         }
     }
 
-    private void requestWriteStoragePermission(){
+    private void requestWriteStoragePermission() {
         /*
-        requests write storage permission, handles user not accepting permission request immediately
+        requests write storage permission, handles user not accepting permission request using toast messages
          */
-        if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)){//this line checks if user has already denied permission once
-            //if true, then
-            new AlertDialog.Builder(this) //the popup message explanation
-                    .setTitle("Write Permission needed")
-                    .setMessage("Write permission is needed to receive photos and videos.")
-                    .setPositiveButton("ok", new DialogInterface.OnClickListener() { //'ok' button is a listener that on click performs another permission request
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            ActivityCompat.requestPermissions(MainActivity.this, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},WRITE_EXTERNAL_STORAGE_CODE );// permission request popup
-                        }
-                    })
-                    .setNegativeButton("cancel", new DialogInterface.OnClickListener() { //other cancel button
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();//exits AlertDialog
-                        }
-                    })
-                    .create().show();
-        }
-        else{//if false, then
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, WRITE_EXTERNAL_STORAGE_CODE);
+        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            //show explanation to user
+            Toast.makeText(this, "Write storage permission is needed to save photos/videos", Toast.LENGTH_LONG).show();
+            //request the permission
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    WRITE_EXTERNAL_STORAGE_CODE);
+        } else {
+            // No explanation needed; request the permission
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    WRITE_EXTERNAL_STORAGE_CODE);
+
+            // WRITE_EXTERNAL_STORAGE_CODE is an
+            // app-defined int constant. The onRequestPermissionsResult method gets the code
         }
     }
-
 
     private void requestReadStoragePermission(){
         /*
         requests read storage permission, handles user not accepting permission request immediately
          */
-        if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)){//this line checks if user has already denied permission once
-            //if true, then
-            new AlertDialog.Builder(this) //the popup message explanation
-                    .setTitle("Read Permission needed")
-                    .setMessage("Read permission is needed to send photos and videos.")
-                    .setPositiveButton("ok", new DialogInterface.OnClickListener() { //'ok' button is a listener that on click performs another permission request
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            ActivityCompat.requestPermissions(MainActivity.this, new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},READ_EXTERNAL_STORAGE_CODE );// permission request popup
-                        }
-                    })
-                    .setNegativeButton("cancel", new DialogInterface.OnClickListener() { //other cancel button
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();//exits AlertDialog
-                        }
-                    })
-                    .create().show();
-        }
-        else{//if false, then
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, READ_EXTERNAL_STORAGE_CODE);
+        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            //show explanation to user
+            Toast.makeText(this, "Read storage permission is needed to send photos/videos", Toast.LENGTH_LONG).show();
+            //request the permission
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    READ_EXTERNAL_STORAGE_CODE);
+        } else {
+            // No explanation needed; request the permission
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                   READ_EXTERNAL_STORAGE_CODE);
+
+            // READ_EXTERNAL_STORAGE_CODE is an
+            // app-defined int constant. The onRequestPermissionsResult method gets the code
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        switch (requestCode) {
+            case CAMERA_PERMISSION_CODE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            case WRITE_EXTERNAL_STORAGE_CODE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+
+            }
+            case READ_EXTERNAL_STORAGE_CODE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+
+            }
+        }
+
+    }
+
+    public boolean makeDirectory(){
         /*
-        displays the toast messages
-        */
-        if(requestCode== CAMERA_PERMISSION_CODE){
-            if(grantResults.length>0 && grantResults[0]== PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(this, "Camera Permission GRANTED", Toast.LENGTH_SHORT).show();
-            }
-            else{
-                Toast.makeText(this, "Camera Permission DENIED", Toast.LENGTH_SHORT).show();
-
-            }
+        function creates a folder for photos/videos to be stored in root of android storage. Returns true if
+        folder was successfully created or already exists, false if folder creation failed.
+         */
+        File root = new File(Environment.getExternalStorageDirectory(),"OQPS");
+        if(!root.exists()){
+            return root.mkdir();
         }
-        else if(requestCode== READ_EXTERNAL_STORAGE_CODE){
-            if(grantResults.length>0 && grantResults[0]== PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(this, "Read Permission GRANTED", Toast.LENGTH_SHORT).show();
-            }
-            else{
-                Toast.makeText(this, "Read Permission DENIED", Toast.LENGTH_SHORT).show();
-
-            }
-        }
-        else if(requestCode== WRITE_EXTERNAL_STORAGE_CODE){
-            if(grantResults.length>0 && grantResults[0]== PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(this, "Write Permission GRANTED", Toast.LENGTH_SHORT).show();
-            }
-            else{
-                Toast.makeText(this, "Write Permission DENIED", Toast.LENGTH_SHORT).show();
-
-            }
-        }
+        return true; //folder already exists
     }
 }
 

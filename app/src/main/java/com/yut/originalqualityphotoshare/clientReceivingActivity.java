@@ -22,7 +22,7 @@ public class clientReceivingActivity extends AppCompatActivity {
         textView= findViewById(R.id.test);
         String detected=getDetected();
         String[] ipAndport= parseDetected(detected);
-        textView.setText("First: "+ipAndport[0]+"\n Second: "+ipAndport[1]);
+        textView.setText(detected);
         this.clientReceiving=new clientReceiving();
         clientReceiving.execute(ipAndport);
 
@@ -39,12 +39,8 @@ public class clientReceivingActivity extends AppCompatActivity {
 
 
     public String[] parseDetected(String detected){
-        String[] array;
-        String[] array2;
 
-        array= detected.split("/");
-        array2= array[1].split(":");
-        return array2;
+        return detected.split(":");
         }
 
 

@@ -13,9 +13,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
+
 
 public class serverSendingActivity extends AppCompatActivity {
 
@@ -35,8 +33,10 @@ public class serverSendingActivity extends AppCompatActivity {
         this.files = getIntent().getStringArrayExtra("FILE_STRINGS");
         this.serverText = findViewById(R.id.serverText);
         ipaddress=getIpAddress();
-        this.port="6969";
+        this.port="4567";
         this.imageView= findViewById(R.id.qrCodeImageView);
+
+        serverText.setText("Ipaddress: "+ ipaddress +"Port: "+ port);
 
         MultiFormatWriter multiFormatWriter= new MultiFormatWriter();
         try{
@@ -66,14 +66,16 @@ public class serverSendingActivity extends AppCompatActivity {
                 return NetworkThread.getIpaddress();
             }
         }
-
-
-
-
-
-
     }
+/*
+    public String[] formatFilenames(String[] incoming){
+        String[] outgoing;
+        for(int i=0; i<files.length; i++){
 
+        }
+        return
+    }
+*/
 
 
 

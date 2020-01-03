@@ -15,7 +15,7 @@ public class serverSending extends AsyncTask <String[], String, Long>  {
     protected Long doInBackground(String[]... incoming) {
        String[] files=incoming[0];
         try {
-            serverSocket = new ServerSocket(6969);
+            serverSocket = new ServerSocket(4567);
             publishProgress("server socket created");
         } catch (IOException io) {
             publishProgress("server socket failed");
@@ -23,12 +23,14 @@ public class serverSending extends AsyncTask <String[], String, Long>  {
         }
         while (!serverSocket.isClosed()) {       //may be incorrect boolean, should be while server is running
             try {
+                System.out.println("in server loop");
                 Socket clientSocket = serverSocket.accept();
                 publishProgress("client connection established");
                 ClientThread client = new ClientThread(files, clientSocket);
                 Thread thread = new Thread(client);
                 thread.start();
                 publishProgress("clientThread started");
+                return null;
 
 
             } catch (IOException io) {

@@ -102,6 +102,7 @@ public class qrCamActivity extends AppCompatActivity {
                     vibrator.vibrate(1000);
                     clientReceivingIntent.putExtra("detected", qrCodes.valueAt(0).displayValue);
                     startActivity(clientReceivingIntent);
+                    onStop();
 
 
                 }
@@ -114,6 +115,7 @@ public class qrCamActivity extends AppCompatActivity {
     @Override
     protected void onStop(){
         super.onStop();
+        cameraSource.stop();
 
     }
 

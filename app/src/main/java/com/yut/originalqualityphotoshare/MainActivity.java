@@ -13,9 +13,12 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -23,6 +26,8 @@ import android.widget.Toast;
 
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Stack;
 
 public class MainActivity extends AppCompatActivity {
@@ -42,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private final int READ_EXTERNAL_STORAGE_CODE=3;
     private static final int IMAGE_PICKER_SELECT=5;
 
-    private Stack<String> URI_CODES;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,9 +63,9 @@ public class MainActivity extends AppCompatActivity {
 
         this.receiveIntent= new Intent(this, qrCamActivity.class);
         this.serverSendingIntent= new Intent(this,serverSendingActivity.class);
-        serverSendingIntent.putExtra("FILE_STRINGS",URI_CODES);
 
-        this.URI_CODES= new Stack<String>();
+
+
 
         if(!makeDirectory()){
             Toast.makeText(this, "directory creation failed", Toast.LENGTH_SHORT).show();
@@ -131,8 +136,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void openGallery(){
         Intent galleryIntent= new Intent(Intent.ACTION_GET_CONTENT);
-        galleryIntent.setType("image/*"); //allows any image file type. Change * to specific extension to limit it
+        String[] mimeTypes= {"images/*", "videos/*"};
+        galleryIntent.setType("*/*"); //allows any image file type. Change * to specific extension to limit it
         galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        galleryIntent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
         startActivityForResult(Intent.createChooser(galleryIntent, "Select Photos and Videos"), IMAGE_PICKER_SELECT);
 
     }
@@ -145,20 +152,32 @@ public class MainActivity extends AppCompatActivity {
             if(resultCode == Activity.RESULT_OK) {
                 if(data.getClipData() != null) {
                     int count = data.getClipData().getItemCount();
+                    String[] paths = new String[count];
                     for(int i = 0; i < count; i++){
                         Uri imageUri = data.getClipData().getItemAt(i).getUri();
-                        URI_CODES.push(imageUri.toString());
+                        String path= getRealPathFromURI(imageUri);
+                        paths[i]= path;
+                        }
+                    serverSendingIntent.putExtra("FILE_PATHS",paths);
+                    startActivity(serverSendingIntent);
+
                     }
-                    startActivity(serverSendingIntent);
+
                 } else if(data.getData() != null) {
-                    String imagePath = data.getData().getPath();
-                    URI_CODES.push(imagePath);
-                    startActivity(serverSendingIntent);
+                    InputStream[] Streams= new InputStream[1];
+                    try {
+                        Streams[0] = getContentResolver().openInputStream(data.getClipData().getItemAt(0).getUri());
+                        serverSendingIntent.putExtra("FILE_STREAMS", Streams);
+                        startActivity(serverSendingIntent);
+                    }
+                    catch (IOException io){
+                        System.out.println("Error Resolving inputstream from image uri (single image)");
+                    }
 
                 }
             }
         }
-    }
+
     private void requestCameraPermission(){
         /*
         requests camera permission handles user not accepting permission request using toast messages
@@ -273,6 +292,45 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+    }
+
+    public String getRealPathFromURI(Uri uri) {
+
+        String realPath="";
+        String wholeID = DocumentsContract.getDocumentId(uri);
+        if(wholeID.charAt(1)=='i'){ //is the file an image?
+            // Split at colon, use second item in the array
+            String id = wholeID.split(":")[1];
+            String[] column = {MediaStore.Images.Media.DATA};
+            // where id is equal to
+            String sel = MediaStore.Images.Media._ID + "=?";
+            Cursor cursor = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, column, sel, new String[]{id}, null);
+            int columnIndex = 0;
+            if (cursor != null) {
+                columnIndex = cursor.getColumnIndex(column[0]);
+                if (cursor.moveToFirst()) {
+                    realPath = cursor.getString(columnIndex);
+                }
+                cursor.close();
+            }
+        }
+        else { //if not, then it is a video file
+            // Split at colon, use second item in the array
+            String id = wholeID.split(":")[1];
+            String[] column = {MediaStore.Video.Media.DATA};
+            // where id is equal to
+            String sel = MediaStore.Video.Media._ID + "=?";
+            Cursor cursor = getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, column, sel, new String[]{id}, null);
+            int columnIndex = 0;
+            if (cursor != null) {
+                columnIndex = cursor.getColumnIndex(column[0]);
+                if (cursor.moveToFirst()) {
+                    realPath = cursor.getString(columnIndex);
+                }
+                cursor.close();
+            }
+        }
+        return realPath;
     }
 
     public boolean makeDirectory(){

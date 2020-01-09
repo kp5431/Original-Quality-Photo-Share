@@ -1,8 +1,10 @@
 package com.yut.originalqualityphotoshare;
 
+import android.net.Uri;
 import android.os.AsyncTask;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 

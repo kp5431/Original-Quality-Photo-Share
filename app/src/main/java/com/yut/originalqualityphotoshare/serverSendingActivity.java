@@ -3,6 +3,7 @@ package com.yut.originalqualityphotoshare;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.graphics.Bitmap;
+
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -15,9 +16,10 @@ import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 
 
+
 public class serverSendingActivity extends AppCompatActivity {
 
-    String[] files;
+
     TextView serverText;
 
     serverSending server;
@@ -30,7 +32,8 @@ public class serverSendingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_server_sending);
-        this.files = getIntent().getStringArrayExtra("FILE_STRINGS");
+
+        String[] files=  getIntent().getExtras().getStringArray("FILE_PATHS");
         this.serverText = findViewById(R.id.serverText);
         ipaddress=getIpAddress();
         this.port="4567";
@@ -67,15 +70,7 @@ public class serverSendingActivity extends AppCompatActivity {
             }
         }
     }
-/*
-    public String[] formatFilenames(String[] incoming){
-        String[] outgoing;
-        for(int i=0; i<files.length; i++){
 
-        }
-        return
-    }
-*/
 
 
 

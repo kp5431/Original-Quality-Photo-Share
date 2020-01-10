@@ -1,16 +1,10 @@
 package com.yut.originalqualityphotoshare;
-
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
-
 import android.Manifest;
-
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -23,12 +17,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Stack;
+
+
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -53,34 +47,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         this.tutorialText=findViewById(R.id.tutorialText);
         this.sendButton =findViewById(R.id.sendButton);
         this.receiveButton = findViewById(R.id.receiveButton);
-
         ActivityCompat.requestPermissions(MainActivity.this, new String[] {Manifest.permission.CAMERA,Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE}, CAMERA_PERMISSION_CODE);// permission request popup
-
-
         this.receiveIntent= new Intent(this, qrCamActivity.class);
         this.serverSendingIntent= new Intent(this,serverSendingActivity.class);
-
-
-
-
         if(!makeDirectory()){
             Toast.makeText(this, "directory creation failed", Toast.LENGTH_SHORT).show();
         }
-
-
-
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
-
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -130,20 +110,16 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
-
     }
-
 
     private void openGallery(){
         Intent galleryIntent= new Intent(Intent.ACTION_GET_CONTENT);
-        String[] mimeTypes= {"images/*", "videos/*"};
+        String[] mimeTypes= {"image/*", "video/*"};
         galleryIntent.setType("*/*"); //allows any image file type. Change * to specific extension to limit it
         galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         galleryIntent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
         startActivityForResult(Intent.createChooser(galleryIntent, "Select Photos and Videos"), IMAGE_PICKER_SELECT);
-
     }
-
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -160,9 +136,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     serverSendingIntent.putExtra("FILE_PATHS",paths);
                     startActivity(serverSendingIntent);
-
                     }
-
                 } else if(data.getData() != null) {
                     InputStream[] Streams= new InputStream[1];
                     try {
@@ -173,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
                     catch (IOException io){
                         System.out.println("Error Resolving inputstream from image uri (single image)");
                     }
-
                 }
             }
         }
@@ -322,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
             String sel = MediaStore.Video.Media._ID + "=?";
             Cursor cursor = getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, column, sel, new String[]{id}, null);
             int columnIndex = 0;
-            if (cursor != null) {
+            if (cursor != null) { 
                 columnIndex = cursor.getColumnIndex(column[0]);
                 if (cursor.moveToFirst()) {
                     realPath = cursor.getString(columnIndex);

@@ -39,20 +39,21 @@ public class clientReceiving extends AsyncTask<String[],Void,Void> {
             numfFiles = dis.readInt();
             System.out.println("Number of files to be received: " + numfFiles);
             for (int i = 0; i < numfFiles; i++) {
-                String filename = Environment.getExternalStorageDirectory() + "/" + "OQPS" + dis.readUTF(); //appends current filename to the OQPS directory
+                System.out.println("Files left to be received: "+ (numfFiles-i));
+                String filename= Environment.getExternalStorageDirectory().toString() + "/" + "OQPS" + dis.readUTF(); //appends current filename to the OQPS directory
                 System.out.println("Current filename: " + filename);
                 FileOutputStream fos = new FileOutputStream(filename);
 
                 byte[] bytes = new byte[(int) dis.readLong()];
                 System.out.println("byte[] length: " + bytes.length);
                 dis.readFully(bytes, 0, bytes.length);
-                System.out.println("file finished: " + dis.readUTF());
                 fos.write(bytes, 0, bytes.length); //writes file to OQPS directory
-
-
+                System.out.println("file finished: " + dis.readUTF());
             }
+            System.out.println("File transfer complete!");
         }
         catch(IOException e){
+            e.printStackTrace();
             System.out.println("io exception within file receiving loop");
             e.getCause();
         }

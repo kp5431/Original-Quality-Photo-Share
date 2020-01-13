@@ -2,7 +2,9 @@ package com.yut.originalqualityphotoshare;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+
+import androidx.viewpager.widget.ViewPager;
+
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
@@ -13,8 +15,10 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import android.view.View;
+import android.text.Html;
+
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.io.File;
@@ -27,13 +31,17 @@ import java.io.InputStream;
 public class MainActivity extends AppCompatActivity {
 
 
+    private ViewPager viewPager;
+    private LinearLayout linearLayout; //bottom dots
+    private SliderAdapter sliderAdapter;
+    private TextView[] pageDots;
 
-    Button sendButton;
-    Button receiveButton;
+    private Button sendButton;
+    private Button receiveButton;
 
-    Intent receiveIntent;
-    Intent serverSendingIntent;
-    TextView tutorialText;
+    private Intent receiveIntent;
+    private Intent serverSendingIntent;
+    private TextView tutorialText;
 
 
     private final int CAMERA_PERMISSION_CODE=1;
@@ -47,9 +55,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        this.tutorialText=findViewById(R.id.tutorialText);
-        this.sendButton =findViewById(R.id.sendButton);
-        this.receiveButton = findViewById(R.id.receiveButton);
+
+        this.viewPager= (ViewPager) findViewById(R.id.slideViewPager);
+        this.linearLayout= (LinearLayout) findViewById(R.id.linearLayout);
+        this.sliderAdapter= new SliderAdapter(this);
+        viewPager.setAdapter(sliderAdapter);
+        addDots(1); //middle page highlighted on app launch
+        viewPager.addOnPageChangeListener(viewListener);
+        viewPager.setCurrentItem(1); //always start app on middle page
+        //this.tutorialText=findViewById(R.id.tutorialText);
+        //this.sendButton =findViewById(R.id.sendButton);
+        //this.receiveButton = findViewById(R.id.receiveButton);
         ActivityCompat.requestPermissions(MainActivity.this, new String[] {Manifest.permission.CAMERA,Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE}, CAMERA_PERMISSION_CODE);// permission request popup
         this.receiveIntent= new Intent(this, qrCamActivity.class);
         this.serverSendingIntent= new Intent(this,serverSendingActivity.class);
@@ -61,13 +77,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        /*
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 /*
                 sendButton listener, checks if read storage permission has been met.
                 If so, proceeds to next activity.
-                */
+
                 if (!(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)){
                     requestReadStoragePermission();
                 }
@@ -85,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
                 receiveButton listener, checks if camera and write storage permissions have been met.
                 If so, proceeds to next activity
                 */
+        /*
                 if (!(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)){
                     requestWriteStoragePermission();
                         if(!(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)) {
@@ -110,6 +128,22 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+        */
+    }
+
+    private void addDots(int position){
+        pageDots= new TextView[sliderAdapter.getCount()];
+        linearLayout.removeAllViews(); //resets dots to their original gray-er color
+        for(int i=0; i<pageDots.length; i++){
+            pageDots[i]= new TextView(this);
+            pageDots[i].setText(Html.fromHtml("&#8226;"));
+            pageDots[i].setTextSize(35);
+            pageDots[i].setTextColor(getResources().getColor(R.color.colorTransparentWhite));
+            linearLayout.addView(pageDots[i]);
+        }
+        if(pageDots.length>0){
+            pageDots[position].setTextColor(getResources().getColor(R.color.colorWhite));
+        }
     }
 
     private void openGallery(){
@@ -317,6 +351,24 @@ public class MainActivity extends AppCompatActivity {
         }
         return true; //folder already exists
     }
+
+    ViewPager.OnPageChangeListener viewListener= new ViewPager.OnPageChangeListener() {
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+        }
+
+        @Override
+        public void onPageSelected(int position) {
+            addDots(position);
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int state) {
+
+        }
+    };
+
 }
 
 
